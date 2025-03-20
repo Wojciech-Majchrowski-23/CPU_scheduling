@@ -3,6 +3,8 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import static java.lang.Thread.sleep;
+
 public class CPU {
 
     private int cpuTime = -1;
@@ -23,7 +25,9 @@ public class CPU {
 
         cpuUpdate();
 
-        while(!isEveryProcessFinished()){
+        int iterator = 0;
+
+        while(!isEveryProcessFinished()) {
 
             if(!cpuQueue.isEmpty()){
 
@@ -36,11 +40,12 @@ public class CPU {
                 int startExecuting = cpuTime;
 
                 while(process.getExecutionTime() > 0){
-                    process.setExecutionTime(process.getExecutionTime() - 1); //decreasing executionTime
+                    process.setExecutionTime(process.getExecutionTime() - 1);//decreasing executionTime
                     cpuUpdate();
                 }
 
-                System.out.printf("%-10s %-25s %-25s %-33s %-25s %-25s %n", "[P_"+process.getId()+"]","[Arrival_Time: " + process.getArrivalTime() + "]", "[Start_executing: " + startExecuting + "]", "[Finished_executing: " + cpuTime + "]","[Executing_Time: " + executionTime  + "]" ,"[Waiting_Time: " + process.getWaitingTime() + "]");
+                System.out.printf("%-7s %-10s %-25s %-25s %-33s %-25s %-25s %n","[" + iterator + "]","[P_"+process.getId()+"]","[Arrival_Time: " + process.getArrivalTime() + "]", "[Start_executing: " + startExecuting + "]", "[Finished_executing: " + cpuTime + "]","[Executing_Time: " + executionTime  + "]" ,"[Waiting_Time: " + process.getWaitingTime() + "]");
+                iterator++;
                 process.setFinished(true);
                 process.setActive(false);
             }
@@ -64,14 +69,11 @@ public class CPU {
 
         //increasing waiting time for every not active and not finished process which is in the cpuQueue
         if(!cpuQueue.isEmpty()){
-            for(Process process : cpuQueue) { //it takes a lot of time
-                if(!process.isActive() && !process.isFinished()){
-                    process.setWaitingTime(process.getWaitingTime() + 1);
-                }
+            for(Process process : cpuQueue) {
+                process.setWaitingTime(process.getWaitingTime() + 1);
             }
         }
 
-        //checking if new processes have arrived
         if(!processes.isEmpty()){
             for(Process process : processes){
                 if(process.getArrivalTime() == cpuTime){
@@ -79,6 +81,7 @@ public class CPU {
                 }
             }
         }
+
     }
 
     public boolean isEveryProcessFinished() {
