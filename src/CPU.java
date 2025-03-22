@@ -10,6 +10,7 @@ public class CPU {
     private int cpuTime = -1;
     private Queue<Process> cpuQueue;
     private ArrayList<Process> processes;
+    private Queue<Process> processesQueue = new LinkedList<>();
 
     public CPU(ArrayList<Process> processes) {
         cpuQueue = new LinkedList<>();
@@ -21,13 +22,13 @@ public class CPU {
         //here sort the array of processes
         //you need an iterator which is going to take processes from array
         //if their arrivalTime equals cpuTime
+
         processes.sort(Comparator.comparingInt(p -> p.getArrivalTime()));
+        processesQueue.addAll(processes);
 
         cpuUpdate();
 
-        int iterator = 0;
-
-        while(!isEveryProcessFinished()) {
+        while(!processesQueue.isEmpty() || !cpuQueue.isEmpty()) {
 
             if(!cpuQueue.isEmpty()){
 
@@ -44,8 +45,7 @@ public class CPU {
                     cpuUpdate();
                 }
 
-                System.out.printf("%-7s %-10s %-25s %-25s %-33s %-25s %-25s %n","[" + iterator + "]","[P_"+process.getId()+"]","[Arrival_Time: " + process.getArrivalTime() + "]", "[Start_executing: " + startExecuting + "]", "[Finished_executing: " + cpuTime + "]","[Executing_Time: " + executionTime  + "]" ,"[Waiting_Time: " + process.getWaitingTime() + "]");
-                iterator++;
+                System.out.printf("%-10s %-25s %-25s %-33s %-25s %-25s %n","[P_"+process.getId()+"]","[Arrival_Time: " + process.getArrivalTime() + "]", "[Start_executing: " + startExecuting + "]", "[Finished_executing: " + cpuTime + "]","[Executing_Time: " + executionTime  + "]" ,"[Waiting_Time: " + process.getWaitingTime() + "]");
                 process.setFinished(true);
                 process.setActive(false);
             }
@@ -74,23 +74,8 @@ public class CPU {
             }
         }
 
-        if(!processes.isEmpty()){
-            for(Process process : processes){
-                if(process.getArrivalTime() == cpuTime){
-                    cpuQueue.add(process);
-                }
-            }
+        while(!processesQueue.isEmpty() && processesQueue.peek().getArrivalTime() == cpuTime ){
+            cpuQueue.add(processesQueue.poll());
         }
-
-    }
-
-    public boolean isEveryProcessFinished() {
-
-        for(Process process : processes){
-            if(!process.isFinished()){
-                return false;
-            }
-        }
-        return true;
     }
 }
