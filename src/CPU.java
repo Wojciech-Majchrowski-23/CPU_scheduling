@@ -75,7 +75,7 @@ public class CPU {
             }
         }
 
-        System.out.printf("%-35s %5s", "[Switches_Between_Branches: " + numberOfSwitchesBetweenProcesses + "]", "[Average_Waiting_Time: ");
+        System.out.printf("%-66s %5s", "[Switches_Between_Branches: " + numberOfSwitchesBetweenProcesses + "]", "[Average_Waiting_Time: ");
         cpuTime = 0;
         return averageProcessWaitingTime / processes.size();
     }
@@ -110,7 +110,7 @@ public class CPU {
                 }
                 current.setWaitingTime(current.getStartedExecutingTime() - current.getArrivalTime());
                 averageProcessWaitingTime += current.getWaitingTime();
-
+//
 //                System.out.printf("%-10s %-25s %-25s %-33s %-25s %-25s %n",
 //                        "[P_" + current.getId() + "]",
 //                        "[Arrival_Time: " + current.getArrivalTime() + "]",
@@ -123,9 +123,18 @@ public class CPU {
             }
         }
 
-        System.out.printf("%-35s %-5s", "[Switches_Between_Branches: " + (numberOfSwitchesBetweenProcesses - 1), "[Average_Waiting_Time: ");
+        averageProcessWaitingTime = averageProcessWaitingTime/processes.size();
+
+        int starvedProcesses = 0;
+        for(Process process : processes) {
+            if(process.getWaitingTime() > 3*averageProcessWaitingTime) {
+                starvedProcesses++;
+            }
+        }
+
+        System.out.printf("%-35s %-30s %-5s", "[Switches_Between_Branches: " + (numberOfSwitchesBetweenProcesses - 1), "[Starved_Processes: " + starvedProcesses + "]", "[Average_Waiting_Time: ");
         cpuTime = 0;
-        return averageProcessWaitingTime/processes.size();
+        return averageProcessWaitingTime;
     }
 
     public void cpuUpdate(Queue<Process> processesQueue, Queue<Process> cpuQueue) {
