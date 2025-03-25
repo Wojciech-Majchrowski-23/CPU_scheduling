@@ -1,81 +1,154 @@
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 import static java.lang.Thread.sleep;
 
 public class CPU {
 
     private int cpuTime = -1;
-    private Queue<Process> cpuQueue;
-    private ArrayList<Process> processes;
-    private Queue<Process> processesQueue = new LinkedList<>();
 
-    public CPU(ArrayList<Process> processes) {
-        cpuQueue = new LinkedList<>();
-        this.processes = processes;
+    public CPU() {}
+
+    public double firstComeFirstServed(ArrayList<Process> processes) {
+
+        Queue<Process> cpuQueue = new LinkedList<>();
+        return processingForFCFSandSJF(processes, cpuQueue);
     }
 
-    public double FirstComeFirstServed() {
+    public double shortestJobFirst(ArrayList<Process> processes) {
 
-        //here sort the array of processes
-        //you need an iterator which is going to take processes from array
-        //if their arrivalTime equals cpuTime
+        Queue<Process> cpuQueue = new PriorityQueue<>(Comparator.comparingInt(Process::getExecutionTime)); //line for SJF
+        return processingForFCFSandSJF(processes, cpuQueue);
+    }
 
-        processes.sort(Comparator.comparingInt(p -> p.getArrivalTime()));
-        processesQueue.addAll(processes);
+    public double roundRobin(ArrayList<Process> processes, int quantumOfTime) {
 
-        cpuUpdate();
+        Queue<Process> cpuQueue = new LinkedList<>();
+
+        double averageProcessWaitingTime = 0;
+        int completedProcesses = 0;
+
+        processes.sort(Comparator.comparingInt(Process::getArrivalTime));
+        int index = 0;
+
+        while (completedProcesses < processes.size()) {
+            while (index < processes.size() && processes.get(index).getArrivalTime() <= cpuTime) {
+                cpuQueue.add(processes.get(index));
+                index++;
+            }
+
+            if (cpuQueue.isEmpty()) {
+                cpuTime++;
+                continue;
+            }
+
+            Process current = cpuQueue.poll();
+
+            if (!current.isActive()) {
+                current.setStartedExecutingTime(cpuTime);
+                current.setEstimatedExecutingTime(current.getExecutionTime());
+                current.setActive(true);
+            }
+
+            int executionTime = Math.min(quantumOfTime, current.getExecutionTime());
+            cpuTime += executionTime;
+            current.setExecutionTime(current.getExecutionTime() - executionTime);
+
+            if (current.getExecutionTime() == 0) {
+                current.setFinished(true);
+                current.setWaitingTime(current.getStartedExecutingTime() - current.getArrivalTime());
+                averageProcessWaitingTime += current.getWaitingTime();
+                completedProcesses++;
+                System.out.printf("%-10s %-25s %-25s %-33s %-33s %-30s %-25s %n",
+                        "[P_" + current.getId() + "]",
+                        "[Arrival_Time: " + current.getArrivalTime() + "]",
+                        "[Start_executing: " + current.getStartedExecutingTime() + "]",
+                        "[Finished_executing: " + cpuTime + "]",
+                        "[Estimated_executing_Time: " + current.getEstimatedExecutingTime() + "]",
+                        "[Real_executing_Time: " + (cpuTime - current.getStartedExecutingTime()) + "]",
+                        "[Waiting_Time: " + current.getWaitingTime() + "]"
+                );
+            } else {
+                cpuQueue.add(current);
+            }
+        }
+
+        System.out.print("Average waiting time: ");
+        cpuTime = 0;
+        return averageProcessWaitingTime / processes.size();
+    }
+
+
+    public double processingForFCFSandSJF(ArrayList<Process> processes, Queue<Process> cpuQueue){
+
+        processes.sort(Comparator.comparingInt(Process::getArrivalTime));
+
+        Queue<Process> processesQueue = new LinkedList<>(processes);
+
+        double averageProcessWaitingTime = 0;
+
+        cpuUpdate(processesQueue, cpuQueue);
 
         while(!processesQueue.isEmpty() || !cpuQueue.isEmpty()) {
 
-            if(!cpuQueue.isEmpty()){
+            if (!cpuQueue.isEmpty()) {
 
-                // .poll - takes the first element and automatically removes it from the first position in queue
-                Process process = cpuQueue.poll();
-                if (process == null) continue;
-                process.setActive(true);
+                Process current = cpuQueue.poll();
+                if (current == null) continue;
+                current.setActive(true);
 
-                int executionTime = process.getExecutionTime();
-                int startExecuting = cpuTime;
+                int executionTime = current.getExecutionTime();
+                current.setStartedExecutingTime(cpuTime);
 
-                while(process.getExecutionTime() > 0){
-                    process.setExecutionTime(process.getExecutionTime() - 1);//decreasing executionTime
-                    cpuUpdate();
+                while (executionTime > 0) {
+                    executionTime-=1;
+                    cpuUpdate(processesQueue, cpuQueue);
                 }
+                current.setWaitingTime(current.getStartedExecutingTime() - current.getArrivalTime());
+                averageProcessWaitingTime += current.getWaitingTime();
 
-                System.out.printf("%-10s %-25s %-25s %-33s %-25s %-25s %n","[P_"+process.getId()+"]","[Arrival_Time: " + process.getArrivalTime() + "]", "[Start_executing: " + startExecuting + "]", "[Finished_executing: " + cpuTime + "]","[Executing_Time: " + executionTime  + "]" ,"[Waiting_Time: " + process.getWaitingTime() + "]");
-                process.setFinished(true);
-                process.setActive(false);
-            }
-            else{
-                cpuUpdate();
+                System.out.printf("%-10s %-25s %-25s %-33s %-25s %-25s %n",
+                        "[P_" + current.getId() + "]",
+                        "[Arrival_Time: " + current.getArrivalTime() + "]",
+                        "[Start_executing: " + current.getStartedExecutingTime() + "]",
+                        "[Finished_executing: " + cpuTime + "]",
+                        "[Executing_Time: " + current.getExecutionTime() + "]",
+                        "[Waiting_Time: " + current.getWaitingTime() + "]");
+            } else {
+                cpuUpdate(processesQueue, cpuQueue);
             }
         }
 
-        //summing waitingTime of every process
-        double averageProcessWaitingTime = 0;
-        for(Process process : processes){
-            averageProcessWaitingTime += process.getWaitingTime();
-        }
+        System.out.print("Average waiting time: ");
+        cpuTime = 0;
         return averageProcessWaitingTime/processes.size();
-
     }
 
-    public void cpuUpdate(){
-        //"CPU TIK"
+    public void cpuUpdate(Queue<Process> processesQueue, Queue<Process> cpuQueue) {
         cpuTime++;
-
-        //increasing waiting time for every not active and not finished process which is in the cpuQueue
-        if(!cpuQueue.isEmpty()){
-            for(Process process : cpuQueue) {
-                process.setWaitingTime(process.getWaitingTime() + 1);
-            }
-        }
 
         while(!processesQueue.isEmpty() && processesQueue.peek().getArrivalTime() == cpuTime ){
             cpuQueue.add(processesQueue.poll());
         }
+
+        // loop for SJF visualization
+
+//        for(Process process : cpuQueue){
+//            System.out.print("[P_" + process.getId() + "] ");
+//        }
+//        System.out.println();
+    }
+
+    public boolean isEveryProcessFinished(ArrayList<Process> processes) {
+        for(Process process : processes) {
+            if(!process.isFinished()) return false;
+        }
+        return true;
+    }
+
+    public boolean isAnyProcessActive(ArrayList<Process> processes) {
+        for(Process process : processes) {
+            if(process.isActive()) return true;
+        }
+        return false;
     }
 }

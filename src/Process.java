@@ -1,7 +1,8 @@
 public class Process {
 
-    private int id, arrivalTime, executionTime, waitingTime = 0;
-    private boolean active = false, finished = false;
+    private int id, arrivalTime, executionTime, waitingTime = 0, startedExecutingTime = 0;
+    private int estimatedExecutingTime;
+    private boolean active = false, finished = false, shown = false;
 
 
     public Process(int id, int arrivalTime, int executionTime) {
@@ -57,4 +58,26 @@ public class Process {
     public void setWaitingTime(int waitingTime) {
         this.waitingTime = waitingTime;
     }
+
+    public boolean isShown() {
+        return shown;
+    }
+
+    public void setShown(boolean shown) {
+        this.shown = shown;
+    }
+
+    public int getStartedExecutingTime() {
+        return startedExecutingTime;
+    }
+
+    public void setStartedExecutingTime(int startedExecutingTime) {
+        this.startedExecutingTime = startedExecutingTime;
+    }
+
+    public int getEstimatedExecutingTime() {
+        return estimatedExecutingTime;
+    }
+
+    public void setEstimatedExecutingTime(int estimatedExecutingTime) {this.estimatedExecutingTime = estimatedExecutingTime;}
 }

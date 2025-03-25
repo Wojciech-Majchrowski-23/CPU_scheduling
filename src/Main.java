@@ -1,31 +1,24 @@
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.Queue;
 
 public class Main {
     public static void main(String[] args) {
 
-        long startTime = System.nanoTime();
+        int numberOfDataSets = 5;
 
-        ArrayList<Process> processChain = ProcessesGenerator.generateProcesses(20, 100, 15);
+        ArrayList<Process>[] processChains = new ArrayList[numberOfDataSets];
 
-//        processChain.sort(Comparator.comparingInt(p -> p.getArrivalTime()));
-//        Queue<Process> processesQueue = new LinkedList<>();
-//        processesQueue.addAll(processChain);
-//
-//        while (!processesQueue.isEmpty()) {
-//            Process process = processesQueue.poll();
-//            System.out.printf("%-7s %-10s %n", "[P_"+process.getId()+"]","[Arrival_Time: " + process.getArrivalTime() + "]");
-//        }
+        for(int i = 0; i < numberOfDataSets; i++){
+            processChains[i] = ProcessesGenerator.generateProcesses(10, 50, 5);
+        }
 
-        CPU cpu = new CPU(processChain);
-        System.out.println(cpu.FirstComeFirstServed());
+        CPU cpu = new CPU();
 
-        long endTime = System.nanoTime();
-        long duration = (endTime - startTime);
-
-        System.out.println("Czas wykonania: " + duration / 1_000_000.0 + " ms");
+        for(int i = 0; i < numberOfDataSets; i++){
+            //System.out.println(cpu.firstComeFirstServed(processChains[i]));
+            //System.out.println(cpu.shortestJobFirst(processChains[i]));
+            System.out.println(cpu.roundRobin(processChains[i], 3));
+            //processes aren't sorted by arrival time because some of the later processes could be shorter
+        }
 
     }
 }

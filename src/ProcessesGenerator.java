@@ -10,7 +10,7 @@ public class ProcessesGenerator {
         int executionTime, arrivalTime;
 
         for(int i = 0; i < numberOfProcesses; i++){
-            arrivalTime = (int)(Math.random() * maxArrivalTime);
+            arrivalTime = (int)(Math.random() * maxArrivalTime) + 1;
             executionTime = (int)(Math.random() * maxExecutionTime) + 5;
             processes.add(new Process(i, arrivalTime, executionTime));
         }
